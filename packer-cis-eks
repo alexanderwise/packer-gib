@@ -1,0 +1,54 @@
+
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": ["mkdir -p /tmp/worker/"]
+    },
+    {
+      "type": "file",
+      "source": "./files/",
+      "destination": "/tmp/worker/"
+    },
+    {
+      "type": "shell",
+      "script": "install-worker.sh",
+      "environment_vars": [
+        "AMI_NAME={{user `ami_name`}}",
+        "BINARY_BUCKET_NAME={{user `binary_bucket_name`}}",
+        "BINARY_BUCKET_PATH={{user `binary_bucket_path`}}",
+        "BINARY_BUCKET_REGION={{user `binary_bucket_region`}}",
+        "DOCKER_VERSION={{user `docker_version`}}",
+        "CNI_VERSION={{user `cni_version`}}",
+        "CNI_PLUGIN_VERSION={{user `cni_plugin_version`}}"
+      ]
+    },
+    {
+        "type": "shell",
+        "inline": [
+            "sudo pip install ansible"
+      ]
+    }, 
+    {
+        "type": "ansible-local",
+        "playbook_file": "ansible/playbook.yaml",
+        "role_paths": [
+            "ansible/roles/common"
+        ],
+        "playbook_dir": "ansible",
+        "galaxy_file": "ansible/requirements.yaml"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "rm .ssh/authorized_keys ; sudo rm /root/.ssh/authorized_keys"
+      ]
+    }
+  ],
+  "post-processors": [
+    {
+      "type": "manifest",
+      "output": "manifest.json",
+      "strip_path": true
+    }
+  ]
+}
